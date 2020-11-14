@@ -258,9 +258,12 @@ bool DeleteFromTree (Node* &Root, Item it){
             }
         }
         if (l < treeNode -> Data.Size() && treeNode -> Data[l] == it){
-            return false;
+            break;
         }
         treeNode = treeNode -> Childs[l];
+    }
+    if (treeNode == nullptr){
+        return false;
     }
     if (treeNode -> Childs[0] == nullptr){
         if (treeNode -> Data.Size() > t - 1 || treeNode -> Parent == nullptr){
