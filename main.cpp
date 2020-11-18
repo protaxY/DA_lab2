@@ -1,7 +1,7 @@
 #include <iostream>
 #include "TVector.h"
 #include "TVector.cpp"
-const unsigned long long t = 2;
+const unsigned long long t = 4;
 const unsigned int KEY_SIZE = 256;
 
 struct Item{
@@ -30,6 +30,7 @@ bool operator< (const Item &lhs, const Item &rhs){
             return false;
         }
     }
+    return false;
 }
 
 bool operator== (const Item &lhs, const Item &rhs){
@@ -248,14 +249,15 @@ Item* SearchInTree (Node* treeNode, Item it){
                 r = m;
             }
         }
-        if (l < treeNode -> Data.Size() && treeNode -> Data[l] == it){
-            return &(treeNode->Data[l]);
+        if (r < treeNode -> Data.Size() && treeNode -> Data[r] == it){
+            return &(treeNode->Data[r]);
         }
         treeNode = treeNode -> Childs[r];
     }
     if (treeNode == nullptr){
         return nullptr;
     }
+    return nullptr;
 }
 
 bool DeleteFromTree (Node* &Root, Item it){
@@ -450,8 +452,8 @@ bool DeleteFromTree (Node* &Root, Item it){
             newCandidate = newCandidate->Childs[l];
         }
         Item tmp = newCandidate -> Data[newCandidate -> Data.Size() - 1];
-        tmp.Value = 0;
         DeleteFromTree(Root, tmp);
+        //printBTree(Root, 0);
         treeNode = Root;
         while (treeNode != nullptr){
             unsigned long long l = 0;
@@ -467,11 +469,11 @@ bool DeleteFromTree (Node* &Root, Item it){
                 }
             }
             if (treeNode -> Data[l] == it){
+                treeNode -> Data[l] = tmp;
                 break;
             }
             treeNode = treeNode -> Childs[l];
         }
-        treeNode -> Data[l] = tmp;
     }
     return true;
 }
@@ -481,58 +483,27 @@ bool DeleteFromTree (Node* &Root, Item it){
 //}
 
 int main(){
+//    std::cin.tie(nullptr);
+//    std::cout.tie(nullptr);
+//    std::ios_base::sync_with_stdio(false);
     Node* bTree = new Node;
     bTree -> Childs.PushBack(nullptr);
     Item tmp;
     tmp.Value=0;
-    char function[KEY_SIZE + 1];
-    for (int i = 0; i < KEY_SIZE + 1; ++i){
-        function[i] = 0;
-    }
-    while (std::cin >> function){
-        if (function[0] == '+'){
-            std::cin >> tmp.Key >> tmp.Value;
-            for (int i = 0; i < KEY_SIZE; ++i){
-                if (tmp.Key[i] >= 'A' && tmp.Key[i] <= 'Z'){
-                    tmp.Key[i] = tmp.Key[i] - 'A' + 'a';
-                }
-            }
-            if (AddToTree(bTree, tmp)){
-                std::cout << "OK\n";
-            } else {
-                std::cout << "Exist\n";
-            }
-        } else if (function[0] == '-'){
-            std::cin >> tmp.Key;
-            for (int i = 0; i < KEY_SIZE; ++i){
-                if (tmp.Key[i] >= 'A' && tmp.Key[i] <= 'Z'){
-                    tmp.Key[i] = tmp.Key[i] - 'A' + 'a';
-                }
-            }
-            if (DeleteFromTree(bTree, tmp)){
-                std::cout << "OK\n";
-            } else {
-                std::cout << "NoSuchWord\n";
-            }
+    while (std::cin >> tmp.Key[0]){
+        if (tmp.Key[0] == '-'){
+            std::cin >> tmp.Key[0];
+            DeleteFromTree(bTree, tmp);
         } else {
-            Item target;
-            for (int i = 0; i < KEY_SIZE; ++i){
-                if (function[i] >= 'A' && function[i] <= 'Z'){
-                    function[i] = function[i] - 'A' + 'a';
-                }
-                target.Key[i] = function[i];
-            }
-            Item* result = SearchInTree(bTree, target);
-            if (result != nullptr){
-                std::cout << "OK: " << result->Value << "\n";
-            } else {
-                std::cout << "NoSuchWord\n";
-            }
+            std::cout << "\n";
+            AddToTree(bTree, tmp);
+
         }
+
         printBTree(bTree, 0);
+        goAround(bTree);
     }
 
-    //goAround(bTree);
     delete bTree;
     return 0;
 }
