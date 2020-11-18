@@ -1,7 +1,6 @@
 #include <iostream>
 #include "TVector.h"
 #include "TVector.cpp"
-#include <queue>
 const unsigned long long t = 2;
 const unsigned int KEY_SIZE = 256;
 
@@ -27,9 +26,10 @@ bool operator< (const Item &lhs, const Item &rhs){
     for (int i = 0; i < KEY_SIZE; ++i){
         if (lhs.Key[i] < rhs.Key[i]){
             return true;
+        } else if (lhs.Key[i] > rhs.Key[i]) {
+            return false;
         }
     }
-    return false;
 }
 
 bool operator== (const Item &lhs, const Item &rhs){
@@ -59,10 +59,7 @@ void printBTree (Node* treeNode,int cnt){
             for (int j=0; j<4*cnt; ++j){
                 std::cout << " ";
             }
-            if (treeNode -> Parent != nullptr){
-                std::cout << treeNode->Parent->Data[0].Key << "-";
-            }
-            std::cout << treeNode->Data[i].Key << " " << "\n";
+            std::cout << treeNode -> Data[i].Key << " " << treeNode -> Data[i].Value  << "\n";
 
         }
         printBTree(treeNode->Childs[treeNode->Childs.Size()-1], cnt+1);
@@ -237,10 +234,29 @@ bool AddToTree (Node* &Root, Item it){
     return true;
 }
 
-//Item SearchInTree (Node* &treeNode){
-//
-//}
-
+Item* SearchInTree (Node* treeNode, Item it){
+    while (treeNode != nullptr){
+        long long l = -1;
+        long long r = treeNode->Data.Size();
+        long long m;
+        while (l + 1 < r){
+            m = (l + r) / 2;
+            if (treeNode -> Data[m] < it){
+                l = m;
+            }
+            else {
+                r = m;
+            }
+        }
+        if (l < treeNode -> Data.Size() && treeNode -> Data[l] == it){
+            return &(treeNode->Data[l]);
+        }
+        treeNode = treeNode -> Childs[r];
+    }
+    if (treeNode == nullptr){
+        return nullptr;
+    }
+}
 
 bool DeleteFromTree (Node* &Root, Item it){
     Node* treeNode = Root;
@@ -460,15 +476,27 @@ bool DeleteFromTree (Node* &Root, Item it){
     return true;
 }
 
-int main() {
+//void SaveTreeInFile(FILE* file){
+//
+//}
+
+int main(){
     Node* bTree = new Node;
     bTree -> Childs.PushBack(nullptr);
     Item tmp;
     tmp.Value=0;
     char function[KEY_SIZE + 1];
+    for (int i = 0; i < KEY_SIZE + 1; ++i){
+        function[i] = 0;
+    }
     while (std::cin >> function){
         if (function[0] == '+'){
             std::cin >> tmp.Key >> tmp.Value;
+            for (int i = 0; i < KEY_SIZE; ++i){
+                if (tmp.Key[i] >= 'A' && tmp.Key[i] <= 'Z'){
+                    tmp.Key[i] = tmp.Key[i] - 'A' + 'a';
+                }
+            }
             if (AddToTree(bTree, tmp)){
                 std::cout << "OK\n";
             } else {
@@ -476,17 +504,35 @@ int main() {
             }
         } else if (function[0] == '-'){
             std::cin >> tmp.Key;
+            for (int i = 0; i < KEY_SIZE; ++i){
+                if (tmp.Key[i] >= 'A' && tmp.Key[i] <= 'Z'){
+                    tmp.Key[i] = tmp.Key[i] - 'A' + 'a';
+                }
+            }
             if (DeleteFromTree(bTree, tmp)){
                 std::cout << "OK\n";
             } else {
                 std::cout << "NoSuchWord\n";
             }
         } else {
-
+            Item target;
+            for (int i = 0; i < KEY_SIZE; ++i){
+                if (function[i] >= 'A' && function[i] <= 'Z'){
+                    function[i] = function[i] - 'A' + 'a';
+                }
+                target.Key[i] = function[i];
+            }
+            Item* result = SearchInTree(bTree, target);
+            if (result != nullptr){
+                std::cout << "OK: " << result->Value << "\n";
+            } else {
+                std::cout << "NoSuchWord\n";
+            }
         }
+        printBTree(bTree, 0);
     }
 
-    goAround(bTree);
+    //goAround(bTree);
     delete bTree;
     return 0;
 }
