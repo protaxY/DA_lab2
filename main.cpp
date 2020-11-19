@@ -126,7 +126,7 @@ template <class T>
 TVector<T>::~TVector(){
     delete [] Data;
 }
-const unsigned long long t = 2;
+const unsigned long long t = 8;
 const unsigned int KEY_SIZE = 256;
 
 struct Item{
@@ -601,10 +601,76 @@ bool DeleteFromTree (Node* &Root, Item it){
     return true;
 }
 
-//void SaveTreeInFile(FILE* file){
+void SaveTreeInFile(Node* treeNode, FILE* saveFile){
+    if (treeNode == nullptr){
+        return;
+    }
+    fwrite("{", sizeof(char), 1, saveFile);
+    fwrite("[", sizeof(char), 1, saveFile);
+    for (int i = 0; i < treeNode -> Data.Size(); ++i){
+        fwrite("(", sizeof(char), 1, saveFile);
+        fwrite(treeNode -> Data[i].Key, sizeof(char), 256, saveFile);
+        fwrite(&(treeNode -> Data[i].Value), sizeof(unsigned long long), 1, saveFile);
+        fwrite(")", sizeof(char), 1, saveFile);
+    }
+    fwrite("]", sizeof(char), 1, saveFile);
+    for (int i = 0; i < treeNode -> Childs.Size(); ++i){
+        SaveTreeInFile(treeNode -> Childs[i], saveFile);
+    }
+    fwrite("}", sizeof(char), 1, saveFile);
+}
+
+//void PrintFile(FILE* file){
+//    char bracket;
+//    fread(&bracket, sizeof(char), 1, file);
+//    std::cout << bracket;
+//    fread(&bracket, sizeof(char), 1, file);
+//    while (bracket != '}'){
+//        std::cout << bracket;
+//        fread(&bracket, sizeof(char), 1, file);
+//        while (bracket != ']'){
+//            std::cout << bracket;
+//            Item tmp;
+//            fread(&tmp.Key, sizeof(char), KEY_SIZE, file);
+//            fread(&tmp.Value, sizeof(unsigned long long), 1, file);
+//            std::cout << tmp.Value << "," << tmp.Key;
+//            fread(&bracket, sizeof(char), 1, file);
+//            std::cout << bracket;
+//            fread(&bracket, sizeof(char), 1, file);
+//        }
+//        fread(&bracket, sizeof(char), 1, file);
+//    }
 //
 //}
 
+Node* LoadTreeFromFile(Node* parent, FILE* loadFile){
+    char bracket;
+    fread(&bracket, sizeof(char), 1, loadFile);
+    Node* treeNode = new Node;
+    fread(&bracket, sizeof(char), 1, loadFile);
+    while (bracket != ']'){
+        Item tmp;
+        fread(&tmp.Key, sizeof(char), KEY_SIZE, loadFile);
+        fread(&tmp.Value, sizeof(unsigned long long), 1, loadFile);
+        treeNode -> Data.PushBack(tmp);
+        treeNode -> Childs.PushBack(nullptr);
+        fread(&bracket, sizeof(char), 1, loadFile);
+        fread(&bracket, sizeof(char), 1, loadFile);
+    }
+    treeNode -> Childs.PushBack(nullptr);
+    treeNode -> Parent = parent;
+    fread(&bracket, sizeof(char), 1, loadFile);
+    if (bracket == '}'){
+        return treeNode;
+    } else {
+        for (int i = 0; i < treeNode->Childs.Size(); ++i){
+            treeNode -> Childs[i] = LoadTreeFromFile(treeNode, loadFile);
+            fread(&bracket, sizeof(char), 1, loadFile);
+        }
+        return treeNode;
+    }
+
+}
 
 int main(){
     std::cin.tie(nullptr);
@@ -618,10 +684,7 @@ int main(){
     for (int i = 0; i < KEY_SIZE + 1; ++i){
         function[i] = 0;
     }
-    unsigned long long cnt=0;
     while (std::cin >> function){
-        ++cnt;
-        //std::cout << cnt << " ";
         if (function[0] == '+'){
             std::cin >> tmp.Key >> tmp.Value;
             for (int i = 0; i < KEY_SIZE; ++i){
@@ -629,7 +692,6 @@ int main(){
                     tmp.Key[i] = tmp.Key[i] - 'A' + 'a';
                 }
             }
-            //tmp.Value = 0;
             if (AddToTree(bTree, tmp)){
                 std::cout << "OK\n";
             } else {
@@ -647,7 +709,28 @@ int main(){
             } else {
                 std::cout << "NoSuchWord\n";
             }
-        } else {
+        } else if (function[0] == '!'){
+            std::cin >> function;
+            if (function[0] == 'S'){
+                std::cin >> function;
+                FILE* saveFile = fopen(function, "wb");
+                if (saveFile == nullptr){
+                    std::cout << "Error\n";
+                }
+                SaveTreeInFile(bTree, saveFile);
+                fclose(saveFile);
+                std::cout << "OK\n";
+            } else {
+                std::cin >> function;
+                FILE* loadFile = fopen(function, "r");
+                char tmp;
+                fread(&tmp, sizeof(char), 1, loadFile);
+                bTree = LoadTreeFromFile(nullptr, loadFile);
+                fclose(loadFile);
+                std::cout << "OK\n";
+            }
+        }
+        else {
             Item target;
             for (int i = 0; i < KEY_SIZE; ++i){
                 if (function[i] >= 'A' && function[i] <= 'Z'){
