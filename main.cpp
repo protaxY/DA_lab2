@@ -620,29 +620,6 @@ void SaveTreeInFile(Node* treeNode, FILE* saveFile){
     fwrite("}", sizeof(char), 1, saveFile);
 }
 
-//void PrintFile(FILE* file){
-//    char bracket;
-//    fread(&bracket, sizeof(char), 1, file);
-//    std::cout << bracket;
-//    fread(&bracket, sizeof(char), 1, file);
-//    while (bracket != '}'){
-//        std::cout << bracket;
-//        fread(&bracket, sizeof(char), 1, file);
-//        while (bracket != ']'){
-//            std::cout << bracket;
-//            Item tmp;
-//            fread(&tmp.Key, sizeof(char), KEY_SIZE, file);
-//            fread(&tmp.Value, sizeof(unsigned long long), 1, file);
-//            std::cout << tmp.Value << "," << tmp.Key;
-//            fread(&bracket, sizeof(char), 1, file);
-//            std::cout << bracket;
-//            fread(&bracket, sizeof(char), 1, file);
-//        }
-//        fread(&bracket, sizeof(char), 1, file);
-//    }
-//
-//}
-
 Node* LoadTreeFromFile(Node* parent, FILE* loadFile){
     char bracket;
     fread(&bracket, sizeof(char), 1, loadFile);
@@ -669,7 +646,6 @@ Node* LoadTreeFromFile(Node* parent, FILE* loadFile){
         }
         return treeNode;
     }
-
 }
 
 int main(){
@@ -715,16 +691,22 @@ int main(){
                 std::cin >> function;
                 FILE* saveFile = fopen(function, "wb");
                 if (saveFile == nullptr){
-                    std::cout << "Error\n";
+                    std::cout << "ERROR:\n";
+                    continue;
                 }
                 SaveTreeInFile(bTree, saveFile);
                 fclose(saveFile);
                 std::cout << "OK\n";
             } else {
                 std::cin >> function;
-                FILE* loadFile = fopen(function, "r");
+                FILE* loadFile = fopen(function, "rb");
+                if (loadFile == nullptr){
+                    std::cout << "ERROR:\n";
+                    continue;
+                }
                 char tmp;
                 fread(&tmp, sizeof(char), 1, loadFile);
+                delete bTree;
                 bTree = LoadTreeFromFile(nullptr, loadFile);
                 fclose(loadFile);
                 std::cout << "OK\n";
@@ -747,8 +729,13 @@ int main(){
         }
         //printBTree(bTree, 0);
         //goAround(bTree);
+        for (int i = 0; i < KEY_SIZE + 1; ++i){
+            function[i] = 0;
+        }
+        for (int i = 0; i < KEY_SIZE; ++i){
+            tmp.Key[i] = 0;
+        }
     }
-
     delete bTree;
     return 0;
 }
