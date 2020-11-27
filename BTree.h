@@ -1,8 +1,3 @@
-//
-// Created by protaxy on 11/25/20.
-//
-
-#ifndef DA_LAB2_BTREE_H
 #define DA_LAB2_BTREE_H
 #include "TVector.h"
 
@@ -465,5 +460,4 @@ namespace BTree {
     }
 };
 
-
-#endif //DA_LAB2_BTREE_H
+#endif
